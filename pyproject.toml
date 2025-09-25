@@ -1,0 +1,20 @@
+[project]
+name = "agentic-rag"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "crewai>=0.193.2",
+    "crewai-tools>=0.73.1",
+    "fastapi>=0.117.1",
+    "httpx>=0.28.1",
+    "llama-index>=0.14.2",
+    "llama-index-embeddings-huggingface>=0.6.1",
+    "openai>=1.108.2",
+    "pydantic-settings>=2.10.1",
+    "python-dotenv>=1.1.1",
+    "serpapi>=0.1.5",
+    "torch>=2.8.0",
+    "transformers>=4.46.3",
+]
