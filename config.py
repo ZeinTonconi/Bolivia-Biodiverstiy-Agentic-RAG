@@ -7,12 +7,11 @@ class AgentSettings(BaseSettings):
 
     openai_model: str = "gpt-4o-mini"
     hf_embeddings_model: str = "intfloat/multilingual-e5-base"
-    travel_guide_store_path: str = "travel_guide_store"
-    travel_guide_data_path: str = "data"
+    biodiversity_store_path: str = "biodiversity_store"
+    biodiversity_data_path: str = "biodiversity_data"
     openai_api_key: str = "key"
     serper_api_key: str = "key"
     log_file: str = "trip.json"
-
 
 
 @cache

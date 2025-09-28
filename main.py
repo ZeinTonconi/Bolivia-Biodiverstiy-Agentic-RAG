@@ -1,24 +1,22 @@
 from dotenv import load_dotenv
-from crewai import Agent, Crew, Task
-from router import decide_travel_guide_coverage
-from tools import web_search_tool
-from prompts import router_prompt_str, web_prompt_str
-from tools import travel_guide_rag_tool
-
 load_dotenv()
 
-user_query_str = input("Ask me anything about traveling in Bolivia (or general): ")
+from crewai import Agent, Crew, Task
+from router import decide_biodiversity_coverage
+from tools import web_search_tool, biodiversity_rag_tool
+from prompts import router_prompt_str, web_prompt_str
+
+user_query_str = input("Ask me anything about biodiversity in Bolivia: ")
 
 router_agent = Agent(
     role="Router",
-    goal="Decide the best tool (Travel Guide, Web Search, or General LLM) for the query",
+    goal="Decide the best tool (Book Guide or Web Search) for the query",
     backstory="""You are an intelligent router that analyzes the user query.
-If it's about Bolivia travel, use the Travel Guide tool.
-If it's about recent events or outside the guidebook, use the Web Search. 
+If it's about Bolivia biodiversity, use the Book Guide tool.
+If it's about outside the guidebook, use the Web Search. 
 You do not give explanation about your answer, you only give the correct tool""",
     tools=[], 
-    prompt_template=router_prompt_str,
-    # llm="gpt-4o-mini"
+    prompt_template=router_prompt_str
 )
 
 router_task = Task(
@@ -27,49 +25,68 @@ router_task = Task(
     agent=router_agent,
 )
 
-if decide_travel_guide_coverage(user_query_str):
-    chosen_tool = "Bolivia Travel guide"
+if decide_biodiversity_coverage(user_query_str):
+    chosen_tool = "Book guide"
 else:
     chosen_tool = "Web Search"
 
 print(chosen_tool)
 
-if chosen_tool.lower().startswith("bolivia"):
+if chosen_tool.lower().startswith("book"):
 
-    travel_expert = Agent(
-        role="Expert travel guide",
-        goal="Provide useful information and recommendations about different travel destination.",
-        backstory="""You are a experienced travel specialized in Bolivia. 
-        Your knowledge allows you to offer very useful advice to travelers that want to visit Bolivia.""",
-        tools=[travel_guide_rag_tool]
+    biodiversity_agent = Agent(
+        role="Experto en Biodiversidad",
+        goal="Proporciona información útil sobre la biodiversidad de Bolivia",
+        backstory="""Eres un especialista en estudios de biodiversidad e informes ecológicos.
+            Muestra los hallazgos con precisión utilizando únicamente los documentos de biodiversidad seleccionados proporcionados.
+            Das prioridad a la claridad, a la citación fáctica y no inventas detalles faltantes.""",
+        tools=[biodiversity_rag_tool]
     )
 
     get_info_task = Task(
-        description=f"Get precise and relevant information about the user query using the provided travel guide tool. User query: {user_query_str}",
-        expected_output="A brief summary with details, facts and tips about the places to travel.",
-        agent=travel_expert,
-    )
-
-    recommend_task = Task(
-        description=f"""Recommend a list of places of interest to visit or activities
-        to do in a given city in Bolivia using the original user query: {user_query_str}, 
-        and the information obtained from the previous results""",
-        expected_output="""A detailed report of places or activities in a bullet list.
-        Include information such as availability, price range, popularity""",
-        agent=travel_expert,
+        description=f"Obtén información precisa y relevante sobre la consulta del usuario utilizando la herramienta de guía de libros proporcionada. Consulta del usuario: {user_query_str}",
+        expected_output="Un texto con detalles, hechos e información sobre la biodiversidad.",
+        agent=biodiversity_agent,
     )
 
     crew = Crew(
-        agents=[travel_expert],
-        tasks=[get_info_task, recommend_task],
+        agents=[biodiversity_agent],
+        tasks=[get_info_task],
         verbose=True
     )
 
-    result = crew.kickoff()
+    overview_result = crew.kickoff()
+    overview_text = str(overview_result).strip()
+    print("=== Overview ===\n", overview_text)
 
-    print(result)
+    # deep_prompt = f"""
+    #     Consulta original: {user_query_str}
 
-    print("\n=== Final Answer (Travel Guide) ===\n", result)
+    #     Resumen preliminar (lo que ya dijiste):
+    #     {overview_text}
+
+    #     Instrucción: Usando ÚNICAMENTE los documentos indexados en la herramienta (no búsquedas web),
+    #     amplía la respuesta anterior en una sola síntesis más completa. Incluye cuando existan en las fuentes:
+    #     - Ejemplos de especies relevantes (nombres comunes o científicos).
+    #     - Regiones/zonas asociadas (departamentos, ecosistemas).
+    #     - Tipos de hábitat y amenazas breves si están documentadas.
+    #     Formato: 3-9 viñetas cortas o 2-4 párrafos.
+    #     """
+    # deep_task = Task(
+    #     description=deep_prompt,
+    #     expected_output="Ampliación detallada y citada (archivo/página) de la respuesta previa.",
+    #     agent=biodiversity_agent
+    # )
+
+    # deep_crew = Crew(
+    #     agents = [biodiversity_agent],
+    #     tasks = [deep_task],
+    #     verbose = True
+    # )
+    
+    # result = deep_crew.kickoff()
+
+    # print("\n=== Final Answer (Book Guide) ===\n", result)
 
 else:
     snippet_1, url_1, snippet_2, url_2 = web_search_tool.run(user_query_str)
@@ -77,7 +94,7 @@ else:
         role="WebSynthesizer",
         goal="Synthesize a short answer using only the two provided web snippets",
         backstory="You are concise and must strictly use only provided snippets.",
-        tools=[],  # no tools needed; we pass snippets in the task description
+        tools=[], 
         prompt_template=web_prompt_str,
         llm_kwargs={"temperature": 0, "max_tokens": 120}
     )
@@ -93,7 +110,7 @@ else:
 
     model_answer = str(web_result)
     final = (
-        "Note: This information is outside the travel guide and was gathered quickly from web sources.\n\n"
+        "Note: This information is outside the biodiversity guide and was gathered quickly from web sources.\n\n"
         + model_answer.strip()
         + "\n\nLinks:\n" + url_1 + ("\n" + url_2 if url_2 else "")
     )

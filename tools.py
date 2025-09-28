@@ -1,40 +1,41 @@
 # tools.py
 from crewai.tools import tool
 import requests
-import os
-from openai import OpenAI
 from crewai_tools import LlamaIndexTool
 from config import get_agent_settings
-from rags import BioRAG
-from prompts import travel_guide_qa_tpl
+from rags import BioRAG, bioRAG
 
 SETTINGS = get_agent_settings()
 
-travel_guide_description = """
-The Travel Guide Query Engine is an AI-powered tool that provides up-to-date travel advice and insights from a curated travel guidebook. Currently, it is based on the book Lonely Planet's: Bolivia, offering rich details to help plan your trip efficiently.
-
-Capabilities include:
-- Detailed highlights and itineraries to personalize your travel experience.
-- Insider tips on saving time, avoiding crowds, and navigating like a local.
-- Essential information on operating hours, websites, transit, and prices.
-- Honest reviews across all budgets, covering food, sightseeing, shopping, and hidden gems.
-- Cultural insights for a deeper understanding of local history, art, cuisine, and politics.
-- Coverage of key destinations, such as La Paz, Lake Titicaca, Salar de Uyuni, and the Amazon Basin.
-
-Simply input your travel questions or ask for recommendations in plain text, and the tool will provide accurate, context-rich responses to guide your journey.
-Note:
-    DO use this tool for recommendations, and general information retrieval. For ACTIONS use the specific 
-    tool, flight, bus, hotel or restaurant.
+bio_description = """
+El Motor de Consultas de Biodiversidad es una herramienta impulsada por IA que proporciona información fáctica extraída de documentos de biodiversidad seleccionados, estudios de campo e informes ecológicos de la región objetivo.
+Capacidades incluyen:
+- Listas de especies e información taxonómica reportadas en los estudios e inventarios indexados.
+- Resúmenes de tipos de hábitats, zonas ecológicas y notas de distribución.
+- Amenazas documentadas, estado de conservación y tendencias históricas de población encontradas en los informes fuente.
+- Datos clave de localidades (sitios, coordenadas, áreas protegidas) cuando estén presentes en los documentos.
+Uso:
+Haz preguntas sobre ocurrencia de especies, hallazgos de estudios, hábitats, problemas de conservación u otros hechos presentes en los documentos de biodiversidad seleccionados. La herramienta responderá utilizando únicamente las fuentes indexadas.
+Nota:
+Usa esta herramienta para la recuperación fáctica de los documentos de biodiversidad seleccionados.
 """
 
-travel_guide_rag_tool = LlamaIndexTool.from_query_engine(
-    BioRAG(
-        store_path="travel_guide_store", 
-        qa_prompt_tpl=travel_guide_qa_tpl
-    ).get_query_engine(),
-    name="Bolivia Travel guide",
-    description=travel_guide_description
+biodiversity_rag_tool = LlamaIndexTool.from_query_engine(
+    bioRAG.get_query_engine(),
+    name="Bolivia biodiversity guide",
+    description=bio_description
 )
+
+# engine = bioRAG.get_query_engine() 
+
+# def bio_query_raw(input_data):
+#     """Search the information in the book"""
+#     # print("[DEBUG] bio_query_raw normalized query:", input_data[:300])  
+#     res = engine.query(input_data)
+#     # print("[DEBUG] engine returned (truncated):", res[:500])
+#     return res
+
+# bio_query_tool = tool("Biodiversity Book")(bio_query_raw)
 
 def web_search_raw(query: str) -> str:
     """Search the web using SerpAPI and return summaries of the top results."""

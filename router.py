@@ -1,12 +1,12 @@
-# main.py (or helper module) — stricter, length+count heuristic
 
 from rags import BioRAG
 
+from prompts import biodiversity_qa_tpl 
 
-rag = BioRAG(store_path="travel_guide_store", qa_prompt_tpl=None)
+rag = BioRAG(store_path="biodiversity_store", data_dir="biodiversity_data", qa_prompt_tpl=biodiversity_qa_tpl)
+# rag = BioRAG
 
-
-def is_covered_by_travel_guide(query: str, min_doc_chars: int = 300, min_docs: int = 2, top_k: int = 4) -> bool:
+def is_covered_by_biodiversity(query: str, min_doc_chars: int = 300, min_docs: int = 2, top_k: int = 4) -> bool:
     """
     Heuristic: require at least `min_docs` retrieved docs and at least one doc with >= min_doc_chars.
     This reduces false positives from tiny snippets.
@@ -36,9 +36,8 @@ def is_covered_by_travel_guide(query: str, min_doc_chars: int = 300, min_docs: i
         return False
     except Exception:
         return False
-
-# main.py — stricter, using retriever scores if present
-def is_covered_by_travel_guide_with_scores(query: str, min_score: float = 0.7, min_docs: int = 2, top_k: int = 4) -> bool:
+    
+def is_covered_by_biodiversity_with_scores(query: str, min_score: float = 0.7, min_docs: int = 2, top_k: int = 4) -> bool:
     """
     Use node.score or node.metadata['score'] if present.
     Accept if at least min_docs have score >= min_score, or the best score >= min_score.
@@ -87,7 +86,7 @@ def cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
         return 0.0
     return float(np.dot(a, b) / (na * nb))
 
-def is_covered_by_travel_guide_by_embedding(query: str, top_k: int = 4, min_sim: float = 0.72, min_docs_above: int = 1) -> bool:
+def is_covered_by_biodiversity_by_embedding(query: str, top_k: int = 4, min_sim: float = 0.72, min_docs_above: int = 1) -> bool:
     """
     Use direct embedding cosine similarity between query and top_k docs.
     min_sim: 0.7-0.8 recommended for strict coverage.
@@ -124,33 +123,22 @@ def is_covered_by_travel_guide_by_embedding(query: str, top_k: int = 4, min_sim:
         print("[Embedding coverage check failed]", e)
         return False
 
-def decide_travel_guide_coverage(query):
+def decide_biodiversity_coverage(query):
 
     q = query.lower()
 
-    if is_covered_by_travel_guide_by_embedding(query, min_sim=0.8, min_docs_above=1):
+    if is_covered_by_biodiversity_by_embedding(query, min_sim=0.8, min_docs_above=1):
         print("By Embeddings")
         return True
-    if is_covered_by_travel_guide_with_scores(query, min_score=0.8, min_docs=1):
+    if is_covered_by_biodiversity_with_scores(query, min_score=0.8, min_docs=1):
         print("By Scores")
         return True
   
     return False
-    # print("By guide")
-    # return is_covered_by_travel_guide(query, min_doc_chars=400, min_docs=2)
 
 # print('============')
 # print("Where is Mexico?")
 # docs = rag.retrieve_docs("Where is Mexico?", top_k=5)
-# for i,d in enumerate(docs):
-#     print("=== DOC", i, "type:", type(d))
-#     print("text preview:", getattr(d, "get_text", lambda: d[:300])()[:400])
-#     print("score:", getattr(d, "score", None), "metadata:", getattr(d, "metadata", None))
-#     print("-----")
-
-# print('============')
-# print("What is Sajta?")
-# docs = rag.retrieve_docs("What is Sajta?", top_k=5)
 # for i,d in enumerate(docs):
 #     print("=== DOC", i, "type:", type(d))
 #     print("text preview:", getattr(d, "get_text", lambda: d[:300])()[:400])
