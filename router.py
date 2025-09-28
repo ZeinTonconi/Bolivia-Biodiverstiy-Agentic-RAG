@@ -135,12 +135,3 @@ def decide_biodiversity_coverage(query):
         return True
   
     return False
-
-# print('============')
-# print("Where is Mexico?")
-# docs = rag.retrieve_docs("Where is Mexico?", top_k=5)
-# for i,d in enumerate(docs):
-#     print("=== DOC", i, "type:", type(d))
-#     print("text preview:", getattr(d, "get_text", lambda: d[:300])()[:400])
-#     print("score:", getattr(d, "score", None), "metadata:", getattr(d, "metadata", None))
-#     print("-----")

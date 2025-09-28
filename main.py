@@ -3,7 +3,7 @@ load_dotenv()
 
 from crewai import Agent, Crew, Task
 from router import decide_biodiversity_coverage
-from tools import web_search_tool, biodiversity_rag_tool
+from tools import web_search_tool, biodiversity_rag_tool_wrapper
 from prompts import router_prompt_str, web_prompt_str
 
 user_query_str = input("Ask me anything about biodiversity in Bolivia: ")
@@ -40,7 +40,7 @@ if chosen_tool.lower().startswith("book"):
         backstory="""Eres un especialista en estudios de biodiversidad e informes ecológicos.
             Muestra los hallazgos con precisión utilizando únicamente los documentos de biodiversidad seleccionados proporcionados.
             Das prioridad a la claridad, a la citación fáctica y no inventas detalles faltantes.""",
-        tools=[biodiversity_rag_tool]
+        tools=[biodiversity_rag_tool_wrapper]
     )
 
     get_info_task = Task(
@@ -58,35 +58,6 @@ if chosen_tool.lower().startswith("book"):
     overview_result = crew.kickoff()
     overview_text = str(overview_result).strip()
     print("=== Overview ===\n", overview_text)
-
-    # deep_prompt = f"""
-    #     Consulta original: {user_query_str}
-
-    #     Resumen preliminar (lo que ya dijiste):
-    #     {overview_text}
-
-    #     Instrucción: Usando ÚNICAMENTE los documentos indexados en la herramienta (no búsquedas web),
-    #     amplía la respuesta anterior en una sola síntesis más completa. Incluye cuando existan en las fuentes:
-    #     - Ejemplos de especies relevantes (nombres comunes o científicos).
-    #     - Regiones/zonas asociadas (departamentos, ecosistemas).
-    #     - Tipos de hábitat y amenazas breves si están documentadas.
-    #     Formato: 3-9 viñetas cortas o 2-4 párrafos.
-    #     """
-    # deep_task = Task(
-    #     description=deep_prompt,
-    #     expected_output="Ampliación detallada y citada (archivo/página) de la respuesta previa.",
-    #     agent=biodiversity_agent
-    # )
-
-    # deep_crew = Crew(
-    #     agents = [biodiversity_agent],
-    #     tasks = [deep_task],
-    #     verbose = True
-    # )
-    
-    # result = deep_crew.kickoff()
-
-    # print("\n=== Final Answer (Book Guide) ===\n", result)
 
 else:
     snippet_1, url_1, snippet_2, url_2 = web_search_tool.run(user_query_str)
