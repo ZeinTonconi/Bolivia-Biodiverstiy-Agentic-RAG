@@ -86,14 +86,13 @@ def cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
         return 0.0
     return float(np.dot(a, b) / (na * nb))
 
-def is_covered_by_biodiversity_by_embedding(query: str, top_k: int = 4, min_sim: float = 0.72, min_docs_above: int = 1) -> bool:
+def is_covered_by_biodiversity_by_embedding(query: str, top_k: int = 4, min_sim: float = 0.8, min_docs_above: int = 1) -> bool:
     """
     Use direct embedding cosine similarity between query and top_k docs.
     min_sim: 0.7-0.8 recommended for strict coverage.
     """
     try:
-        # assume `embed_model` exists in rags module or Settings.embed_model
-        from rags import embed_model  # or import from module where you set embed_model
+        from rags import embed_model  
         # embed query
         q_emb = embed_model.get_text_embedding(query)
         # retrieve docs (nodes)
@@ -127,10 +126,10 @@ def decide_biodiversity_coverage(query):
 
     q = query.lower()
 
-    if is_covered_by_biodiversity_by_embedding(query, min_sim=0.8, min_docs_above=1):
+    if is_covered_by_biodiversity_by_embedding(query, min_sim=0.8, min_docs_above=2):
         print("By Embeddings")
         return True
-    if is_covered_by_biodiversity_with_scores(query, min_score=0.8, min_docs=1):
+    if is_covered_by_biodiversity_with_scores(query, min_score=0.8, min_docs=2):
         print("By Scores")
         return True
   
