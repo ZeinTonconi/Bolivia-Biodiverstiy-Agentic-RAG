@@ -8,3 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
+
+biodiversity_store/
+travel_guide_store/
+
+.env

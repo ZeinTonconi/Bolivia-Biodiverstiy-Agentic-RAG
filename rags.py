@@ -67,18 +67,11 @@ class BioRAG:
         return query_engine
 
     def retrieve_docs(self, query: str, top_k: int = 3):
-        """
-        Return top_k retrieved Document/Node objects for the query.
-        This performs similarity retrieval (embeddings) — no LLM synthesis.
-        """
-        # Try multiple ways depending on LlamaIndex version
         try:
-            # Preferred: use index.as_retriever (if available)
             retriever = self.index.as_retriever(search_kwargs={"k": top_k})
             docs = retriever.retrieve(query)
             return docs
         except Exception:
-            # Fallback: use as_query_engine()._retriever if present
             try:
                 qe = self.index.as_query_engine()
                 retr = getattr(qe, "retriever", None)
@@ -87,12 +80,9 @@ class BioRAG:
             except Exception:
                 pass
 
-        # Last resort: run a normal query but keep it short/no synthesis
         try:
             qe = self.index.as_query_engine()
-            # Some versions support a low-verbosity / similarity-only call; otherwise use query and return results
             resp = qe.query(query)
-            # try to extract source nodes
             nodes = getattr(resp, "source_nodes", None) or getattr(resp, "nodes", None) or []
             return nodes[:top_k]
         except Exception:

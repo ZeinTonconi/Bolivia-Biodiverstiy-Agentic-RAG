@@ -53,7 +53,7 @@ export default function ChatUI() {
       const sources = data.sources ?? null;
       addMessage("assistant", answer, sources);
     } catch (err) {
-      addMessage("assistant", `Error: ${err.message}`);
+      addMessage("assistant", `Existio un error, intentelo de nuevo mas tarde`);
     } finally {
       setLoading(false);
     }
@@ -130,7 +130,7 @@ export default function ChatUI() {
             fullWidth
             multiline
             maxRows={3}
-            placeholder="Ask about biodiversity in Bolivia..."
+            placeholder="Pregunta sobre la biodiversidad en Bolivia"
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={onKey}

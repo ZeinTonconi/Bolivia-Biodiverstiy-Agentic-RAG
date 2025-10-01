@@ -22,13 +22,11 @@ app = FastAPI(title="Agentic RAG (Crew pipelines)")
 
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
-# serialize potentially-racy calls to the RAG/index/crew
 _execution_lock = threading.Lock()
 
 def _run_biodiversity_crew(user_query: str, max_attempts: int = 2, retry_delay: float = 0.25) -> str:
     """
     Create the biodiversity Agent and Task, kickoff the Crew, and return the textual result.
-    Retries once if a transient tool validation error occurs (like the Pydantic 'query' missing error).
     """
     biodiversity_agent = Agent(
         role="Experto en Biodiversidad",
@@ -74,8 +72,7 @@ def _run_biodiversity_crew(user_query: str, max_attempts: int = 2, retry_delay: 
 
 def _run_web_path(user_query: str) -> str:
     """
-    Execute the web search path: get snippets via web_search_tool, then run a WebSynthesizer agent
-    that synthesizes a short answer from the two snippets (same behavior as your main.py).
+    Execute the web search path: get snippets via web_search_tool, then run a WebSynthesizer agent.
     """
     try:
         snippet_1, url_1, snippet_2, url_2 = web_search_tool.run(user_query)
@@ -149,7 +146,7 @@ def ask(req: AskRequest):
 
     if covered:
         try:
-            answer_text = _run_biodiversity_crew(q)
+            answer_text = _run_biodiversity_crew(q, retry_delay=1.5, max_attempts=3)
             return AskResponse(answer=answer_text, tool_used="Bolivia biodiversity guide", sources=None)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Biodiversity tool failed: {type(e).__name__}: {e}")
@@ -196,8 +193,7 @@ def health():
     return {"status": "ok"}
 
 @app.post("/route", response_model=RouteResponse)
-async def route(req: QueryRequest):
-    """Check if query is covered by the Book Guide or needs Web Search."""
+def route(req: QueryRequest):
     if decide_biodiversity_coverage(req.query):
         chosen_tool = "Book Guide"
     else:
