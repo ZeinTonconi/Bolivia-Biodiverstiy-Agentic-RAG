@@ -12,17 +12,17 @@ from llama_index.llms.openai import OpenAI
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from config import get_agent_settings
 from prompts import biodiversity_qa_tpl
-# import torch 
+import torch 
 
 SETTINGS = get_agent_settings()
 
 llm = OpenAI(model=SETTINGS.openai_model)
-# device = "cuda" if torch.cuda.is_available() and torch.cuda.get_device_capability(0)[0] >= 7 else "cpu"
-# print(f"[INFO] Embeddings running on: {device}")
+device = "cuda" if torch.cuda.is_available() and torch.cuda.get_device_capability(0)[0] >= 7 else "cpu"
+print(f"[INFO] Embeddings running on: {device}")
 
 embed_model = HuggingFaceEmbedding(
     model_name=SETTINGS.hf_embeddings_model,
-    device="cpu"
+    device=device
 )
 
 Settings.embed_model = embed_model
