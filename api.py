@@ -37,6 +37,9 @@ def _run_biodiversity_crew(user_query: str, max_attempts: int = 2, retry_delay: 
             "Das prioridad a la claridad, a la citación fáctica y no inventas detalles faltantes."
         ),
         tools=[biodiversity_rag_tool_wrapper],
+        max_iter=2,
+        max_rpm=2,
+        max_tokens=1000
     )
 
     get_info_task = Task(
