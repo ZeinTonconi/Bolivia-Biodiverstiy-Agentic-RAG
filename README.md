@@ -45,6 +45,8 @@ Abrir el archivo .env y reemplazar con tus credenciales reales:
 OPENAI_API_KEY=tu_openai_api_key_aqui
 SERPER_API_KEY=tu_serpapi_api_key_aqui
 ```
+### 5. Descomprimir biodiversity_store
+Debido a que el tamaño del biodiversity_store es superior a lo que permite github se subio el .zip, se debe descomprimir este archivo si no se desea generar los embeddings.
 ## Ejecucion del proyecto
 ### 1. Servidor API (FastAPI)
 
